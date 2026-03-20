@@ -143,11 +143,12 @@ A developer wants to mix stdin with file arguments using the conventional `-` pl
 ### Edge Cases
 
 - File with no trailing newline (e.g. `"hello"`): line count is 0 (lines = count of `\n` chars)
-- Line of only whitespace: counts as 0 words
+- Line of only whitespace: counts as 0 words (word splitting uses `bytes.split()`, equivalent to `iswspace()` for ASCII; all Python-recognized Unicode whitespace is excluded)
 - Very large files: column width scales to accommodate the digit count (minimum 7 chars wide)
 - `-c` and `-m` in the same invocation: rightmost flag wins
 - `-L` with multiple files: total reports the maximum, not the sum
 - Empty stdin: all counts are 0, no filename shown
+- Non-UTF-8 bytes with `-m`: decoded with `errors="replace"`; each replacement character counts as 1
 
 ---
 
@@ -159,8 +160,8 @@ A developer wants to mix stdin with file arguments using the conventional `-` pl
 - **FR-002**: `pywcsk -l` MUST report only line count
 - **FR-003**: `pywcsk -w` MUST report only word count
 - **FR-004**: `pywcsk -c` MUST report only byte count (see FR-008 for mutual exclusion with `-m`)
-- **FR-005**: `pywcsk -m` MUST report only character count (locale-aware Unicode code points; see FR-008 for mutual exclusion with `-c`)
-- **FR-006**: `pywcsk -L` MUST report the length of the longest line, measured in characters (tab counts as 1; see constitution for known deviation from BSD tabstop-8)
+- **FR-005**: `pywcsk -m` MUST report only character count decoded as UTF-8 Unicode code points; if the file is not valid UTF-8, replacement characters are used (`errors="replace"`); pywcsk always uses UTF-8 regardless of `LANG`/`LC_CTYPE` (see constitution for deviation from BSD locale-awareness; see FR-008 for mutual exclusion with `-c`)
+- **FR-006**: `pywcsk -L` MUST report the length of the longest line, always measured in characters (tab counts as 1); BSD `wc -L` measures bytes by default and switches to characters only when `-m` is also given — pywcsk always uses characters (see constitution for both deviations)
 - **FR-007**: Output column order MUST always be: lines, words, bytes/chars, max_line_length, filename — regardless of the order flags appear on the command line
 - **FR-008**: `-c` and `-m` are mutually exclusive; the last one specified on the command line wins
 - **FR-009**: With multiple input files, MUST print one row per file followed by a `total` row
@@ -186,4 +187,4 @@ A developer wants to mix stdin with file arguments using the conventional `-` pl
 - **SC-002**: `pywcsk -l/-w/-c <file>` output matches `wc -l/-w/-c <file>` string-for-string on ASCII fixtures on both platforms
 - **SC-003**: All 18 implementation tasks complete with unit, integration, and golden output tests all green
 - **SC-004**: `mypy --strict`, `flake8`, `bandit`, and `pre-commit run --all-files` all pass with zero errors/warnings
-- **SC-005**: Oracle tests pass on both macOS and ubuntu-latest; known deviations (tab `-L`, multibyte `-m`) are `xfail` with documented reasons
+- **SC-005**: Oracle tests pass on both macOS and ubuntu-latest; known deviations (tab width in `-L`, `-L` byte-vs-char unit, `-m` locale handling) are `xfail` with documented reasons

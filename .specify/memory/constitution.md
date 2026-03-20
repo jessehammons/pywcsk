@@ -32,6 +32,8 @@ All input files must be fully counted before the first output line is printed. T
 | Behavior | BSD `wc` | pywcsk | Rationale |
 |---|---|---|---|
 | `-L` tab width | tabstop-8 expansion | 1 character per tab | Avoids locale/terminal complexity |
+| `-L` unit | bytes (default), chars with `-m` | always characters | Simpler, consistent with `-m` semantics |
+| `-m` encoding | respects `LANG`/`LC_CTYPE` locale | always UTF-8, `errors="replace"` | Avoids locale detection complexity; predictable on all platforms |
 | `--libxo` | supported | not implemented | FreeBSD-only library |
 | SIGINFO | supported | not implemented | BSD-only signal |
 
@@ -57,4 +59,4 @@ These will not be implemented regardless of future spec requests without a const
 
 This constitution supersedes all other practices. Amendments require: written rationale, update to the relevant task spec, and update to this document's version and date.
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-19 | **Last Amended**: 2026-03-19
+**Version**: 1.1.0 | **Ratified**: 2026-03-19 | **Last Amended**: 2026-03-20

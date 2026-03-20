@@ -136,7 +136,7 @@ Each task leaves all quality gates green: `pre-commit run --all-files && pytest 
 
 **Goal**: `-` as filename reads from stdin; that row shows no filename.
 
-**Independent Test**: `echo "hello\n" | pywcsk -` → `      1       1       6`
+**Independent Test**: `printf 'hello\n' | pywcsk -` → `      1       1       6`
 
 - [ ] T017 [US7] Handle `-` in file loop; golden file `dash_stdin.default.expected`; tests: `test_dash_reads_stdin`, `test_dash_and_file`, `test_dash_in_middle`
 
