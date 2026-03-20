@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pywcsk"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "click",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+    "pytest",
+    "pytest-cov",
+    "pytest-mock",
+    "black",
+    "mypy",
+    "flake8",
+    "flake8-bugbear",
+    "flake8-comprehensions",
+    "flake8-docstrings",
+    "flake8-import-order",
+    "flake8-quotes",
+    "pep8-naming",
+    "bandit[toml]",
+]
+
+[project.scripts]
+pywcsk = "pywcsk.cli:main"
+
+[tool.setuptools]
+packages = ["pywcsk"]
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+
+[tool.mypy]
+python_version = "3.10"
+junit_xml = "reports/mypy.xml"
+strict = true
+disallow_subclassing_any = false
+disallow_untyped_decorators = false
+ignore_missing_imports = true
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+warn_unreachable = true
+
+[tool.bandit]
+# B101: assert_used (not an issue in tests)
+# B404, B603, B607: subprocess-related skips — inherited from pepalyzer template,
+# not yet applicable to pywcsk. Remove if subprocess is never used.
+skips = ["B101", "B404", "B603", "B607"]
+exclude_dirs = ["tests", "test_*"]
