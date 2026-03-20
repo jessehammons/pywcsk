@@ -1,0 +1,99 @@
+"""Oracle tests — compare pywcsk line counts against system wc.
+
+Uses integer comparison so tests pass on both BSD wc (macOS) and GNU wc
+(Linux), which differ in output column width.
+
+Run selectively: pytest -m oracle
+"""
+
+from pathlib import Path
+import shutil
+import subprocess
+
+from click.testing import CliRunner
+import pytest
+
+from pywcsk.cli import main
+
+pytestmark = pytest.mark.oracle
+
+FIXTURES = Path(__file__).parent / "fixtures"
+
+
+def _wc_line_count(path: Path) -> int:
+    """Return line count from system wc -l (integer, platform-safe)."""
+    result = subprocess.run(
+        ["wc", "-l", str(path)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return int(result.stdout.strip().split()[0])
+
+
+def _pywcsk_line_count(path: Path) -> int:
+    """Return line count from pywcsk (integer)."""
+    result = CliRunner().invoke(main, [str(path)])
+    assert result.exit_code == 0, f"pywcsk failed: {result.output}"
+    return int(result.output.strip().split()[0])
+
+
+def _wc_stdin_count(data: bytes) -> int:
+    """Return line count from system wc -l on stdin."""
+    result = subprocess.run(
+        ["wc", "-l"],
+        input=data,
+        capture_output=True,
+        check=True,
+    )
+    return int(result.stdout.strip().split()[0])
+
+
+def _pywcsk_stdin_count(data: bytes) -> int:
+    """Return line count from pywcsk on stdin."""
+    result = CliRunner().invoke(main, [], input=data)
+    assert result.exit_code == 0, f"pywcsk failed: {result.output}"
+    return int(result.output.strip())
+
+
+@pytest.fixture(scope="session", autouse=True)
+def require_wc() -> None:
+    """Skip entire module if wc is not available."""
+    if not shutil.which("wc"):
+        pytest.skip("system wc not found on PATH")
+
+
+def test_oracle_empty() -> None:
+    """Empty file: pywcsk and wc -l both report 0."""
+    path = FIXTURES / "empty.txt"
+    assert _pywcsk_line_count(path) == _wc_line_count(path)
+
+
+def test_oracle_hello() -> None:
+    """Single-line file: counts match wc -l."""
+    path = FIXTURES / "hello.txt"
+    assert _pywcsk_line_count(path) == _wc_line_count(path)
+
+
+def test_oracle_multi() -> None:
+    """Multi-line file: counts match wc -l."""
+    path = FIXTURES / "multi.txt"
+    assert _pywcsk_line_count(path) == _wc_line_count(path)
+
+
+def test_oracle_no_newline() -> None:
+    """File without trailing newline: both report 0."""
+    path = FIXTURES / "no_newline.txt"
+    assert _pywcsk_line_count(path) == _wc_line_count(path)
+
+
+def test_oracle_stdin_one_line() -> None:
+    """One line on stdin: counts match wc -l."""
+    data = b"hello world\n"
+    assert _pywcsk_stdin_count(data) == _wc_stdin_count(data)
+
+
+def test_oracle_stdin_multi() -> None:
+    """Multiple lines on stdin: counts match wc -l."""
+    data = b"one\ntwo\nthree\n"
+    assert _pywcsk_stdin_count(data) == _wc_stdin_count(data)
