@@ -55,11 +55,27 @@ Three new modules, plus updates to `cli.py`:
 
 ---
 
-## Test Layers (all three required per task)
+## Test Layers
 
-1. **Unit tests** — `tests/test_counter.py`, `tests/test_formatter.py`: pure functions, no CLI
+Layers 1–3 are required per task. Layer 4 is added in its own dedicated task once all flags are implemented.
+
+1. **Unit tests** — `tests/test_counter.py`, `tests/test_formatter.py`, `tests/test_flag_precedence.py`: pure functions, no CLI
 2. **Integration tests** — `tests/test_cli.py`: Click `CliRunner`, covers flags, errors, multi-file
 3. **Golden output tests** — `tests/test_golden.py`: parametrized, invokes CLI, compares against `tests/golden/*.expected` files; `{path}` tokens substituted at runtime; fixtures live in `tests/fixtures/`
+4. **Oracle tests** — `tests/test_oracle.py`: runs system `wc` and `pywcsk` against the same fixtures and compares results; catches subtle edge cases and validates spec completeness. See Task 017 for full detail.
+
+### BSD vs GNU `wc` differences
+
+macOS ships BSD `wc`; GitHub Actions (ubuntu-latest) ships GNU `wc`. Known divergences that affect oracle testing:
+
+| Behavior | BSD (macOS) | GNU (Linux/CI) |
+|---|---|---|
+| Column width minimum | 7 | varies (based on actual value width) |
+| `-L` flag | supported | supported |
+| `-m` locale handling | uses `LC_CTYPE` | uses `LC_ALL`/`LC_CTYPE` |
+| Multiple spaces in output | may differ | may differ |
+
+**Strategy:** string comparison is the default — run system `wc` and `pywcsk` on the same fixture and assert `pywcsk_output == wc_output`. Semantic comparison (parse integers, compare counts only) is the narrow fallback used only for cases where BSD and GNU produce different column widths for identical input. Every fallback to semantic comparison must have an inline comment explaining exactly why string comparison cannot be used. Tests covering known behavioral divergences (tab expansion for `-L`, multibyte locale for `-m`) are marked `@pytest.mark.xfail(strict=False)` with a reason string.
 
 ---
 
@@ -81,14 +97,24 @@ Each task = one coherent behavior; all checks green when done.
 - Add `_count_words(data: bytes) -> int`: `len(data.split())`; `analyze()` now populates `words`
 - Extend `test_counter.py`: `analyze(b"hello world\n").words == 2`, `analyze(b"  spaces  \n").words == 1`, `analyze(b"hello\n\nworld\n").words == 2`
 
-### Task 004 — `counter.py`: `analyze()` adds bytes
+### Task 004 — `counter.py`: `analyze()` adds bytes + first oracle tests
 - Add `_count_bytes(data: bytes) -> int`: `len(data)`; `analyze()` now populates `bytes_count`
 - Extend `test_counter.py`: `analyze(b"hello\n").bytes_count == 6`, multibyte UTF-8 input → `bytes_count` exceeds `chars` (still `0` at this stage)
+- **Create `tests/test_oracle.py`** — earliest point where oracle testing is meaningful: `analyze()` now produces lines, words, and bytes, which is exactly what `wc` reports by default
+  - Session-scoped `wc_flavor` fixture: detects `"bsd"` vs `"gnu"` via `wc --version` (succeeds on GNU, fails on BSD); skips module if `wc` not on `$PATH`
+  - `run_wc(flags, path) -> str` helper: runs system `wc` and returns its raw stdout string; string comparison is the default; a separate `parse_wc_output(s) -> dict[str, int]` helper is available as fallback for the cases documented below
+  - First oracle cases (all at the `analyze()` level — no CLI string output yet, so semantic comparison is unavoidable at this stage):
+    - `hello.txt` default: `analyze(data).lines/words/bytes_count` matches parsed `wc hello.txt`
+    - `multi.txt` default: same
+    - `empty.txt` default: all zeros on both sides
+    - Inline comment on each: `# semantic comparison only — CLI not yet wired; switch to string comparison in Task 008`
+  - Mark all tests `@pytest.mark.oracle`; add marker to `pyproject.toml` `[tool.pytest.ini_options]`
 
 ### Task 005 — `counter.py`: `analyze()` adds chars and max line length
 - Add `_count_chars` (locale-aware decode, `errors="replace"`) and `_count_max_line_length` (tab = 1 char — documented deviation from BSD's tabstop-8)
 - `analyze()` now populates all five fields; `Counts` is fully populated
 - Extend `test_counter.py` with UTF-8 multibyte tests: `analyze(b"caf\xc3\xa9\n").chars == 5`, `.bytes_count == 6`
+- Extend `test_oracle.py`: semantic oracle cases for `-m` and `-L` at the `analyze()` level (CLI not yet wired for these flags); `-L` on tab-containing files marked `xfail(strict=False, reason="tab expansion: BSD=tabstop-8, pywcsk=1")`; each case has inline comment `# semantic only — switch to string comparison in Task 011`
 
 ### Task 006 — `formatter.py`
 - Imports `Counts` from `counter` (does not redefine it)
@@ -109,6 +135,7 @@ Each task = one coherent behavior; all checks green when done.
 - When any flag specified, show only flagged columns; no flags = default (lines+words+bytes)
 - Output order always canonical regardless of flag input order
 - Golden files: `hello.{l,w,c,lw,lwc}.expected`
+- Extend `test_oracle.py`: CLI-level oracle cases for `-l`, `-w`, `-c` using string comparison (`pywcsk_output == wc_output`); also convert the Task 004 default-mode cases from semantic to string comparison now that the CLI exists
 
 ### Task 009 — Flag precedence: `_resolve_bytes_chars`
 - Implement `_resolve_bytes_chars(argv: list[str]) -> tuple[bool, bool]` in `cli.py` (returns `(show_bytes, show_chars)`)
@@ -130,6 +157,7 @@ Each task = one coherent behavior; all checks green when done.
 - Create `tests/fixtures/cafe.txt` (UTF-8 "café\n", 6 bytes, 5 chars)
 - Golden files: `cafe.{m,c,cm,mc}.expected`
 - Integration tests in `test_cli.py`: `test_flag_m_ascii`, `test_flag_m_utf8`
+- Extend `test_oracle.py`: CLI-level string-comparison oracle cases for `-m` on ASCII fixtures; multibyte fixture oracle case marked `xfail(strict=False, reason="locale encoding resolution may differ BSD/GNU")`
 
 ### Task 011 — `-L` flag (longest line)
 - Add `-L` option, pass through to formatter (`make_total` already implements max-not-sum)
@@ -140,6 +168,7 @@ Each task = one coherent behavior; all checks green when done.
 - Add total row when `len(processed_files) > 1`; total uses string `"total"` as filename
 - Create `tests/fixtures/small.txt`
 - Golden file: `hello_and_small.default.expected` (2 file rows + total row)
+- Extend `test_oracle.py`: multi-file string-comparison oracle case verifying full output (per-file rows + total row) matches system `wc` exactly
 
 ### Task 013 — Multi-file `-L` total is max, not sum
 - Covered by `formatter.make_total` (already correct); this task adds explicit test coverage proving it
@@ -161,7 +190,26 @@ Each task = one coherent behavior; all checks green when done.
 - Golden file: `dash_stdin.default.expected`
 - Tests: `test_dash_reads_stdin`, `test_dash_and_file`, `test_dash_in_middle`
 
-### Task 017 — README + documentation
+### Task 017 — Oracle tests against system `wc`
+- Create `tests/test_oracle.py`; mark all tests `@pytest.mark.oracle` so they can be run selectively (`pytest -m oracle`) or skipped in environments without system `wc`
+- Auto-detect `wc` flavor at session start: `subprocess.run(["wc", "--version"])` succeeds on GNU, fails on BSD; store as a session-scoped fixture `wc_flavor: Literal["bsd", "gnu"]`
+- Skip entire module if `wc` is not on `$PATH`
+- **Oracle helper:** `run_wc(flags, path) -> Counts` — runs system `wc` with given flags against given file, parses integer columns from output into a `Counts` object; ignores column widths and spacing entirely
+- **Parametrized oracle cases** (all use `tests/fixtures/` files):
+  - Default (no flags): lines, words, bytes match for `hello.txt`, `multi.txt`, `empty.txt`
+  - `-l`: line count matches
+  - `-w`: word count matches
+  - `-c`: byte count matches
+  - `-m`: char count matches (ASCII-only fixture; skip multibyte on GNU/BSD divergence)
+  - `-L`: max line length matches (ASCII fixture; mark xfail on known tab-expansion divergence)
+  - Multiple files: per-file counts and total match for `hello.txt` + `small.txt`
+- **Known divergences** (marked `@pytest.mark.xfail(strict=False, reason="...")`):
+  - `-L` on files containing tabs: BSD expands tabs to tabstop-8, GNU does not; pywcsk uses width-1
+  - `-m` with multibyte input on some locales: encoding resolution may differ
+- **CI note:** oracle tests run on both macOS (BSD) and ubuntu-latest (GNU) in the GitHub Actions matrix; a failure on one platform but not the other is a signal to check the known-divergence list
+- Add `pyproject.toml` marker declaration: `[tool.pytest.ini_options] markers = ["oracle: compare against system wc"]`
+
+### Task 018 — README + documentation
 - Fill in `README.md`: synopsis, installation, usage examples, flags table, known deviations from BSD wc
 - No code changes; pre-commit hooks must pass on new content
 
@@ -174,7 +222,7 @@ pywcsk/
   __init__.py, cli.py, counter.py, formatter.py
 
 tests/
-  test_basic.py, test_counter.py, test_formatter.py, test_flag_precedence.py, test_cli.py, test_golden.py
+  test_basic.py, test_counter.py, test_formatter.py, test_flag_precedence.py, test_cli.py, test_golden.py, test_oracle.py
   fixtures/: empty.txt, hello.txt, multi.txt, cafe.txt, lines.txt, small.txt,
              short_lines.txt, long_lines.txt
   golden/: ~17 *.expected files
@@ -189,7 +237,13 @@ tests/
 
 After each task: `pre-commit run --all-files && pytest --verbose --cov=pywcsk`
 
-End-to-end smoke tests (after Task 005+):
+Run oracle tests separately (requires system `wc`):
+```bash
+pytest -m oracle --verbose          # compare against system wc
+pytest -m "not oracle" --verbose    # standard suite without oracle tests
+```
+
+End-to-end smoke tests (after Task 007+):
 ```bash
 echo "hello world" | pywcsk                    # → "      1       2      11"
 pywcsk -l tests/fixtures/hello.txt             # → "      1 tests/fixtures/hello.txt"
