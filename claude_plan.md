@@ -17,10 +17,10 @@ Skipped (out of scope): `--libxo` (FreeBSD-specific), SIGINFO signal handling (B
   plan.md                # Technical implementation strategy
   tasks/
     001-cli-skeleton-refactor.md
-    002-counter-count-lines.md
-    003-counter-count-words.md
-    004-counter-count-bytes.md
-    005-counter-chars-maxlen.md
+    002-counter-counts-dataclass-lines.md
+    003-counter-analyze-words.md
+    004-counter-analyze-bytes.md
+    005-counter-analyze-chars-maxlen.md
     006-formatter.md
     007-cli-default-no-flags.md
     008-flags-l-w-c.md
@@ -42,9 +42,11 @@ Three new modules, plus updates to `cli.py`:
 
 | File | Role |
 |---|---|
-| `pywcsk/counter.py` | Pure functions on `bytes`; no I/O, no Click imports |
-| `pywcsk/formatter.py` | `Counts` dataclass + column formatting + total computation |
+| `pywcsk/counter.py` | `Counts` dataclass + `analyze(data: bytes) -> Counts`; private `_count_*` helpers; no I/O, no Click |
+| `pywcsk/formatter.py` | Column formatting and total computation; imports `Counts` from `counter` |
 | `pywcsk/cli.py` | Click command wiring counter + formatter; changed from `@click.group()` to `@click.command()` |
+
+**Pipeline:** `bytes → analyze() → Counts → formatter → str`. Every layer receives and passes `Counts` — the CLI never touches raw integers, and the formatter never calls counting functions directly.
 
 **Key constraint:** All files are counted before any output is produced (required for consistent column-width computation across a multi-file invocation).
 
@@ -69,28 +71,29 @@ Each task = one coherent behavior; all checks green when done.
 - Change `cli.py`: `@click.group()` → `@click.command()`, keep `version_option`, add stub `files` argument (`nargs=-1`)
 - Create `tests/test_cli.py` with `test_version_flag`, `test_help_flag`, `test_no_args_exits_zero`
 
-### Task 002 — `counter.py`: `count_lines`
-- Create `pywcsk/counter.py` with `count_lines(data: bytes) -> int`: `data.count(b"\n")`
-- Create `tests/test_counter.py` with parametrized tests: empty bytes → 0, `b"hello\n"` → 1, `b"a\nb\nc\n"` → 3, no trailing newline → 0 for `b"hello"`
+### Task 002 — `counter.py`: `Counts` dataclass + `analyze()` for lines
+- Create `pywcsk/counter.py` with the `Counts` dataclass (all five fields: `lines, words, bytes_count, chars, max_line_length`, all `int`, default `0`) and `analyze(data: bytes) -> Counts`
+- `analyze()` populates only `lines` for now via private `_count_lines(data: bytes) -> int`: `data.count(b"\n")`; other fields remain `0`
+- Create `tests/test_counter.py`: test `analyze(b"").lines == 0`, `analyze(b"hello\n").lines == 1`, `analyze(b"a\nb\nc\n").lines == 3`, `analyze(b"hello").lines == 0`; also assert other fields are `0`
 
-### Task 003 — `counter.py`: `count_words`
-- Add `count_words(data: bytes) -> int`: `len(data.split())`
-- Extend `test_counter.py`: empty → 0, `b"hello"` → 1, `b"hello world\n"` → 2, `b"  spaces  \n"` → 1, `b"hello\n\nworld\n"` → 2
+### Task 003 — `counter.py`: `analyze()` adds words
+- Add `_count_words(data: bytes) -> int`: `len(data.split())`; `analyze()` now populates `words`
+- Extend `test_counter.py`: `analyze(b"hello world\n").words == 2`, `analyze(b"  spaces  \n").words == 1`, `analyze(b"hello\n\nworld\n").words == 2`
 
-### Task 004 — `counter.py`: `count_bytes`
-- Add `count_bytes(data: bytes) -> int`: `len(data)`
-- Extend `test_counter.py`: empty → 0, `b"hello\n"` → 6, multibyte UTF-8 string → byte count exceeds char count
+### Task 004 — `counter.py`: `analyze()` adds bytes
+- Add `_count_bytes(data: bytes) -> int`: `len(data)`; `analyze()` now populates `bytes_count`
+- Extend `test_counter.py`: `analyze(b"hello\n").bytes_count == 6`, multibyte UTF-8 input → `bytes_count` exceeds `chars` (still `0` at this stage)
 
-### Task 005 — `counter.py` chars and max line length
-- `count_chars(data: bytes, encoding: str = "") -> int`: locale-aware decode, `errors="replace"`
-- `count_max_line_length(data: bytes, encoding: str = "") -> int`: max of decoded line lengths (tab = 1 char — documented deviation from BSD's tabstop-8)
-- Extend `test_counter.py` with UTF-8 multibyte tests
+### Task 005 — `counter.py`: `analyze()` adds chars and max line length
+- Add `_count_chars` (locale-aware decode, `errors="replace"`) and `_count_max_line_length` (tab = 1 char — documented deviation from BSD's tabstop-8)
+- `analyze()` now populates all five fields; `Counts` is fully populated
+- Extend `test_counter.py` with UTF-8 multibyte tests: `analyze(b"caf\xc3\xa9\n").chars == 5`, `.bytes_count == 6`
 
 ### Task 006 — `formatter.py`
-- `Counts` dataclass: `lines, words, bytes_count, chars, max_line_length`
+- Imports `Counts` from `counter` (does not redefine it)
 - `format_row(counts, filename, show_*, col_width) -> str`: columns in canonical order (lines, words, bytes/chars, max_line_length), right-justified
 - `compute_col_width(all_counts, ...) -> int`: `max(7, len(str(max_val_across_all)))`
-- `make_total(count_list, show_max_line) -> Counts`: sums for lines/words/bytes/chars; MAX for max_line_length
+- `make_total(count_list, show_max_line) -> Counts`: sums lines/words/bytes_count/chars; MAX for max_line_length
 - Create `tests/test_formatter.py`
 
 ### Task 007 — Default mode CLI (stdin + single file, no flags)
