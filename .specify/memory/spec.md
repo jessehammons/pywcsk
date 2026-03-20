@@ -21,7 +21,7 @@ A developer wants to count lines, words, and bytes in one or more text files, ju
 
 1. **Given** `hello.txt` containing `"hello\n"` (1 line, 1 word, 6 bytes), **When** `pywcsk hello.txt` is run with no flags, **Then** stdout is `      1       1       6 hello.txt\n` and exit code is 0
 2. **Given** an empty file `empty.txt` (0 bytes), **When** `pywcsk empty.txt` is run, **Then** stdout is `      0       0       0 empty.txt\n`
-3. **Given** `multi.txt` with 3 lines, 5 words, 23 bytes, **When** `pywcsk multi.txt`, **Then** stdout is `      3       5      23 multi.txt\n`
+3. **Given** `multi.txt` containing `"one two\nthree four\nfive\n"` (3 lines, 5 words, 24 bytes), **When** `pywcsk multi.txt`, **Then** stdout is `      3       5      24 multi.txt\n`
 4. **Given** no file arguments and `"hello world\n"` on stdin, **When** `pywcsk` is run, **Then** stdout is `      1       2      12\n` (no filename field for stdin)
 5. **Given** empty stdin, **When** `pywcsk` is run, **Then** stdout is `      0       0       0\n`
 6. **Given** a file where the last line has no trailing newline (e.g. `"hello"`), **When** `pywcsk file.txt`, **Then** line count is `0` (lines = number of `\n` characters)
@@ -158,9 +158,9 @@ A developer wants to mix stdin with file arguments using the conventional `-` pl
 - **FR-001**: `pywcsk` MUST count lines, words, and bytes by default (no flags specified)
 - **FR-002**: `pywcsk -l` MUST report only line count
 - **FR-003**: `pywcsk -w` MUST report only word count
-- **FR-004**: `pywcsk -c` MUST report only byte count; cancels any prior `-m`
-- **FR-005**: `pywcsk -m` MUST report only character count (locale-aware Unicode code points); cancels any prior `-c`
-- **FR-006**: `pywcsk -L` MUST report only the length of the longest line in bytes (or chars with `-m`)
+- **FR-004**: `pywcsk -c` MUST report only byte count (see FR-008 for mutual exclusion with `-m`)
+- **FR-005**: `pywcsk -m` MUST report only character count (locale-aware Unicode code points; see FR-008 for mutual exclusion with `-c`)
+- **FR-006**: `pywcsk -L` MUST report the length of the longest line, measured in characters (tab counts as 1; see constitution for known deviation from BSD tabstop-8)
 - **FR-007**: Output column order MUST always be: lines, words, bytes/chars, max_line_length, filename — regardless of the order flags appear on the command line
 - **FR-008**: `-c` and `-m` are mutually exclusive; the last one specified on the command line wins
 - **FR-009**: With multiple input files, MUST print one row per file followed by a `total` row

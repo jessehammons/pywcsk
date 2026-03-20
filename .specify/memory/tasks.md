@@ -33,7 +33,7 @@ Each task leaves all quality gates green: `pre-commit run --all-files && pytest 
 
 ## Phase 4: Formatter (Foundational — blocks output)
 
-- [ ] T007 [US1] Create `pywcsk/formatter.py` with `format_row`, `compute_col_width`, `make_total`; imports `Counts` from `counter`; create `tests/test_formatter.py`
+- [ ] T007 [US1] Create `pywcsk/formatter.py` with `format_row`, `compute_col_width`, `make_total`; imports `Counts` from `counter`; create `tests/test_formatter.py` including `test_compute_col_width_minimum_7` and `test_compute_col_width_scales_beyond_7_digits`
 
 **Checkpoint**: Formatter produces correct column-ordered output strings from `Counts` objects.
 
@@ -45,7 +45,7 @@ Each task leaves all quality gates green: `pre-commit run --all-files && pytest 
 
 **Independent Test**: `pywcsk tests/fixtures/hello.txt` → `      1       1       6 tests/fixtures/hello.txt`
 
-- [ ] T008 [US1] Wire counter + formatter into CLI for default mode (lines+words+bytes); create `tests/fixtures/` (empty.txt, hello.txt, multi.txt), `tests/golden/*.default.expected`, and `tests/test_golden.py`
+- [ ] T008 [US1] Wire counter + formatter into CLI for default mode (lines+words+bytes); create `tests/fixtures/` (empty.txt, hello.txt, multi.txt, no_newline.txt), `tests/golden/*.default.expected`, and `tests/test_golden.py`; `multi.txt` = `"one two\nthree four\nfive\n"` (3/5/24); `no_newline.txt` = `"hello"` (0 lines, 1 word, 5 bytes)
 
 **Checkpoint**: User Story 1 (FR-001) fully functional. Oracle string comparison available from next task.
 
@@ -57,7 +57,7 @@ Each task leaves all quality gates green: `pre-commit run --all-files && pytest 
 
 **Independent Test**: `pywcsk -l hello.txt` → `      1 hello.txt`
 
-- [ ] T009 [US2] Add `-l`, `-w`, `-c` click options; implement flag-selection logic; golden files for `hello.{l,w,c,lw,lwc}.expected`; **convert oracle cases to string comparison** (CLI now exists)
+- [ ] T009 [US2] Add `-l`, `-w`, `-c` click options; implement flag-selection logic; golden files for `hello.{l,w,c,lw,lwc}.expected`; add `test_flag_order_invariant` (assert `-wl` and `-lw` produce identical output); **convert oracle cases to string comparison** (CLI now exists)
 
 **Checkpoint**: User Story 2 (FR-002, FR-003, FR-004, FR-007) fully functional.
 

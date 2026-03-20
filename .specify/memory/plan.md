@@ -48,7 +48,8 @@ tests/
 ├── fixtures/               # small deterministic input files
 │   ├── empty.txt
 │   ├── hello.txt           # "hello\n"
-│   ├── multi.txt           # 3 lines, 5 words, 23 bytes
+│   ├── multi.txt           # "one two\nthree four\nfive\n" — 3 lines, 5 words, 24 bytes
+│   ├── no_newline.txt      # "hello" — 0 lines, 1 word, 5 bytes (no trailing newline)
 │   ├── small.txt           # "hi\n"
 │   ├── cafe.txt            # UTF-8 "café\n" (6 bytes, 5 chars)
 │   ├── lines.txt           # varying line lengths; longest = 25 chars

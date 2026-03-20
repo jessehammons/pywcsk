@@ -25,6 +25,8 @@ Output columns always appear in this fixed order: **lines → words → bytes/ch
 ### VI. All Files Counted Before Any Output
 All input files must be fully counted before the first output line is printed. This is required for correct column-width computation: every row must use the width needed by the largest count across all files.
 
+> **Implementation note**: Tasks T008–T015 use a single-pass loop as scaffolding. Task T016 refactors to the compliant two-pass loop. This sequencing is intentional; T016 is the task that satisfies this principle.
+
 ## Known Deviations from BSD `wc`
 
 | Behavior | BSD `wc` | pywcsk | Rationale |
