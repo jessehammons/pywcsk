@@ -95,7 +95,14 @@ def format_row(
     col_width: int,
 ) -> str: ...
 
-def compute_col_width(all_counts: list[Counts], ...) -> int: ...
+def compute_col_width(
+    all_counts: list[Counts],
+    show_lines: bool,
+    show_words: bool,
+    show_bytes: bool,
+    show_chars: bool,
+    show_max_line: bool,
+) -> int: ...
 # Returns max(7, len(str(max_value_across_all_shown_columns)))
 
 def make_total(count_list: list[Counts], show_max_line: bool) -> Counts: ...

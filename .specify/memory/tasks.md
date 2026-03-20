@@ -8,7 +8,7 @@ Each task leaves all quality gates green: `pre-commit run --all-files && pytest 
 
 ## Phase 1: Spec Kit Setup
 
-- [ ] T001 Write `.specify/memory/` spec files and verify with `specify analyze`; manual man-page cross-check; spot-check spec acceptance criteria against live `wc` output
+- [ ] T001 Write `.specify/memory/` spec files and verify with `/speckit.analyze` in Claude Code; manual man-page cross-check; spot-check spec acceptance criteria against live `wc` output
 
 ---
 
@@ -45,7 +45,7 @@ Each task leaves all quality gates green: `pre-commit run --all-files && pytest 
 
 **Independent Test**: `pywcsk tests/fixtures/hello.txt` → `      1       1       6 tests/fixtures/hello.txt`
 
-- [ ] T008 [US1] Wire counter + formatter into CLI for default mode (lines+words+bytes); create `tests/fixtures/` (empty.txt, hello.txt, multi.txt, no_newline.txt), `tests/golden/*.default.expected`, and `tests/test_golden.py`; `multi.txt` = `"one two\nthree four\nfive\n"` (3/5/24); `no_newline.txt` = `"hello"` (0 lines, 1 word, 5 bytes)
+- [ ] T008 [US1] Wire counter + formatter into CLI for default mode (lines+words+bytes); create `tests/fixtures/` (empty.txt, hello.txt, multi.txt, no_newline.txt), `tests/golden/` (empty.default.expected, hello.default.expected, multi.default.expected, no_newline.default.expected, stdin.default.expected), and `tests/test_golden.py`; `multi.txt` = `"one two\nthree four\nfive\n"` (3/5/24); `no_newline.txt` = `"hello"` (0 lines, 1 word, 5 bytes); `stdin.default.expected` covers US1 scenarios 4–5 (stdin and empty stdin)
 
 **Checkpoint**: User Story 1 (FR-001) fully functional. Oracle string comparison available from next task.
 
@@ -126,7 +126,7 @@ Each task leaves all quality gates green: `pre-commit run --all-files && pytest 
 
 **Goal**: Column width determined by the largest count across all files; all rows use the same width.
 
-- [ ] T016 Refactor CLI loop to two-pass (count all → format all); tests for wide-column consistency across files in same invocation
+- [ ] T016 [FR-011] Refactor CLI loop to two-pass (count all → format all); tests for wide-column consistency across files in same invocation
 
 **Checkpoint**: FR-011 (column width scaling) fully functional.
 
@@ -157,7 +157,7 @@ Each task leaves all quality gates green: `pre-commit run --all-files && pytest 
 - **T003–T006**: Sequential (each extends `analyze()`)
 - **T007**: Depends on T006 (`Counts` must be complete)
 - **T008**: Depends on T007 (formatter must exist)
-- **T009–T017**: Each depends on T008 (CLI must exist); otherwise sequential
+- **T009–T017**: Each depends on T008 (CLI must exist); otherwise sequential (exception: T010 only requires T002)
 - **T018**: Depends on all prior tasks
 
 ## Parallel Opportunities

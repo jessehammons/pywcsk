@@ -100,7 +100,7 @@ A developer wants to find the length of the longest line in one or more files.
 
 1. **Given** `lines.txt` with longest line of 25 chars (no tabs), **When** `pywcsk -L lines.txt`, **Then** stdout is `     25 lines.txt\n`
 2. **Given** `empty.txt`, **When** `pywcsk -L empty.txt`, **Then** stdout is `      0 empty.txt\n`
-3. **Given** `-l` and `-L` both specified, **When** `pywcsk -lL lines.txt`, **Then** stdout shows lines then max_line_length: `      N      25 lines.txt\n`
+3. **Given** `-l` and `-L` both specified, **When** `pywcsk -lL lines.txt`, **Then** stdout shows lines then max_line_length: `      N      25 lines.txt\n` (N = actual line count of lines.txt; defined in T012)
 4. **Given** `short_lines.txt` (max=5) and `long_lines.txt` (max=20), **When** `pywcsk -L short_lines.txt long_lines.txt`, **Then** total row is `     20 total\n` (max across files, not sum)
 5. **Given** a file containing tab characters, **When** `pywcsk -L tab_file.txt`, **Then** each tab counts as 1 character (pywcsk deviation from BSD tabstop-8; see constitution)
 
@@ -130,12 +130,12 @@ A developer wants to mix stdin with file arguments using the conventional `-` pl
 
 **Why this priority**: Standard Unix convention; enables use in complex pipelines.
 
-**Independent Test**: `echo "hello\n" | pywcsk -` produces `      1       1       6`
+**Independent Test**: `printf 'hello\n' | pywcsk -` produces `      1       1       6`
 
 **Acceptance Scenarios**:
 
 1. **Given** `"hello\n"` on stdin, **When** `pywcsk -` is run, **Then** stdout is `      1       1       6\n` (no filename field; stdin rows never show a filename)
-2. **Given** stdin and one file, **When** `echo "hi\n" | pywcsk - hello.txt`, **Then** two count rows plus a total row are printed
+2. **Given** stdin and one file, **When** `printf 'hi\n' | pywcsk - hello.txt`, **Then** two count rows plus a total row are printed
 3. **Given** `-` between two files, **When** `pywcsk file1.txt - file2.txt`, **Then** output rows appear in that order (file1, stdin, file2, total)
 
 ---
