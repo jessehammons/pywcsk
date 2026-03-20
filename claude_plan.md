@@ -24,14 +24,15 @@ Skipped (out of scope): `--libxo` (FreeBSD-specific), SIGINFO signal handling (B
     006-formatter.md
     007-cli-default-no-flags.md
     008-flags-l-w-c.md
-    009-flag-m-char-counting.md
-    010-flag-L-maxline.md
-    011-multi-file-total.md
-    012-multi-file-L-total-max.md
-    013-error-handling.md
-    014-column-width-scaling.md
-    015-stdin-dash-argument.md
-    016-documentation.md
+    009-flag-precedence-resolve-bytes-chars.md
+    010-flag-m-char-counting.md
+    011-flag-L-maxline.md
+    012-multi-file-total.md
+    013-multi-file-L-total-max.md
+    014-error-handling.md
+    015-column-width-scaling.md
+    016-stdin-dash-argument.md
+    017-documentation.md
 ```
 
 ---
@@ -109,42 +110,58 @@ Each task = one coherent behavior; all checks green when done.
 - Output order always canonical regardless of flag input order
 - Golden files: `hello.{l,w,c,lw,lwc}.expected`
 
-### Task 009 — `-m` flag + `-c`/`-m` mutual exclusion
-- Add `-m` option; implement `_resolve_bytes_chars(argv: list[str]) -> tuple[bool, bool]`
+### Task 009 — Flag precedence: `_resolve_bytes_chars`
+- Implement `_resolve_bytes_chars(argv: list[str]) -> tuple[bool, bool]` in `cli.py` (returns `(show_bytes, show_chars)`)
+- No CLI wiring yet — pure logic, tested in isolation
+- Create `tests/test_flag_precedence.py` with exhaustive unit tests:
+  - `[]` → `(True, False)` (default: bytes)
+  - `["-c"]` → `(True, False)`
+  - `["-m"]` → `(False, True)`
+  - `["-c", "-m"]` → `(False, True)` (last wins: `-m`)
+  - `["-m", "-c"]` → `(True, False)` (last wins: `-c`)
+  - `["-cm"]` → `(True, False)` (combined short flag: `-c` after `-m` in argv string)
+  - `["-mc"]` → `(True, False)` (combined: `-c` wins)
+  - `["-l", "-m", "-c", "-w"]` → `(True, False)` (irrelevant flags ignored)
+  - `["-l", "-c", "-m", "-w"]` → `(False, True)`
+  - repeated flags: `["-c", "-c"]` → `(True, False)`
+
+### Task 010 — `-m` flag wired into CLI
+- Add `-m` click option; call `_resolve_bytes_chars(sys.argv[1:])` to resolve byte/char mode
 - Create `tests/fixtures/cafe.txt` (UTF-8 "café\n", 6 bytes, 5 chars)
 - Golden files: `cafe.{m,c,cm,mc}.expected`
+- Integration tests in `test_cli.py`: `test_flag_m_ascii`, `test_flag_m_utf8`
 
-### Task 010 — `-L` flag (longest line)
+### Task 011 — `-L` flag (longest line)
 - Add `-L` option, pass through to formatter (`make_total` already implements max-not-sum)
 - Create `tests/fixtures/lines.txt` (known longest line = 25 chars)
 - Golden files: `lines.{L,lL}.expected`
 
-### Task 011 — Multiple files with total row
+### Task 012 — Multiple files with total row
 - Add total row when `len(processed_files) > 1`; total uses string `"total"` as filename
 - Create `tests/fixtures/small.txt`
 - Golden file: `hello_and_small.default.expected` (2 file rows + total row)
 
-### Task 012 — Multi-file `-L` total is max, not sum
+### Task 013 — Multi-file `-L` total is max, not sum
 - Covered by `formatter.make_total` (already correct); this task adds explicit test coverage proving it
 - Create `tests/fixtures/short_lines.txt`, `long_lines.txt`
 - Golden file: `short_and_long_lines.L.expected` (total = max not sum)
 
-### Task 013 — Error handling hardening
+### Task 014 — Error handling hardening
 - Handle permission denied, `IsADirectoryError`, all-files-fail case
 - Total row printed only for successfully processed files (if >1 succeeded)
 - Tests: `test_all_missing_files_exit_1`, `test_two_valid_one_missing_shows_total`, `test_directory_as_argument`
 
-### Task 014 — Column width scaling (two-pass refactor)
+### Task 015 — Column width scaling (two-pass refactor)
 - Refactor CLI output loop: count all files first, then format all rows
 - All rows use the widest column width required by any single file
 - Tests: wide-column consistency across files in same invocation
 
-### Task 015 — Stdin via `-` argument
+### Task 016 — Stdin via `-` argument
 - `-` as filename reads from stdin, displays no filename (matching BSD behavior)
 - Golden file: `dash_stdin.default.expected`
 - Tests: `test_dash_reads_stdin`, `test_dash_and_file`, `test_dash_in_middle`
 
-### Task 016 — README + documentation
+### Task 017 — README + documentation
 - Fill in `README.md`: synopsis, installation, usage examples, flags table, known deviations from BSD wc
 - No code changes; pre-commit hooks must pass on new content
 
@@ -157,13 +174,13 @@ pywcsk/
   __init__.py, cli.py, counter.py, formatter.py
 
 tests/
-  test_basic.py, test_counter.py, test_formatter.py, test_cli.py, test_golden.py
+  test_basic.py, test_counter.py, test_formatter.py, test_flag_precedence.py, test_cli.py, test_golden.py
   fixtures/: empty.txt, hello.txt, multi.txt, cafe.txt, lines.txt, small.txt,
              short_lines.txt, long_lines.txt
   golden/: ~17 *.expected files
 
 .specify/
-  constitution.md, spec.md, plan.md, tasks/001-016-*.md
+  constitution.md, spec.md, plan.md, tasks/001-017-*.md
 ```
 
 ---
