@@ -1,0 +1,20 @@
+# Markdownlint config for .specify/memory spec files.
+#
+# Rules disabled because they produce false positives in spec/plan/constitution
+# documents that intentionally use dense formatting.
+#
+# MD013: line-length — spec acceptance scenarios regularly exceed 120 chars
+# MD022: blanks-around-headings — constitution uses compact principle blocks
+# MD031: blanks-around-fences — code blocks inside list items
+# MD032: blanks-around-lists — numbered lists directly after headings
+# MD038: no-space-in-code — wc output examples contain leading spaces (intentional)
+# MD040: fenced-code-language — plain text blocks don't need a language tag
+# MD060: table-column-style — constitution table uses compact pipe style
+
+MD013: false
+MD022: false
+MD031: false
+MD032: false
+MD038: false
+MD040: false
+MD060: false
