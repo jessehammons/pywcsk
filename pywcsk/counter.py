@@ -22,6 +22,14 @@ def count_lines(data: bytes) -> int:
     return data.count(b"\n")
 
 
+def count_words(data: bytes) -> int:
+    """Return the number of whitespace-delimited tokens in data."""
+    return len(data.split())
+
+
 def analyze(data: bytes) -> Counts:
     """Return a Counts populated from raw file bytes."""
-    return Counts(lines=count_lines(data))
+    return Counts(
+        lines=count_lines(data),
+        words=count_words(data),
+    )
