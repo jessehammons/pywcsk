@@ -168,3 +168,52 @@ def test_oracle_words_stdin_multi() -> None:
     """Multiple words on stdin: counts match wc -w."""
     data = b"one two\nthree four\nfive\n"
     assert _pywcsk_word_stdin_count(data) == _wc_word_stdin_count(data)
+
+
+# ---------------------------------------------------------------------------
+# Line-count flag oracle tests (feature 004-flag-l)
+# ---------------------------------------------------------------------------
+
+
+def _pywcsk_flag_l_count(path: Path) -> int:
+    """Return line count from pywcsk -l (integer)."""
+    result = CliRunner().invoke(main, ["-l", str(path)])
+    assert result.exit_code == 0, f"pywcsk failed: {result.output}"
+    return int(result.output.strip().split()[0])
+
+
+def _pywcsk_flag_l_stdin_count(data: bytes) -> int:
+    """Return line count from pywcsk -l on stdin."""
+    result = CliRunner().invoke(main, ["-l"], input=data)
+    assert result.exit_code == 0, f"pywcsk failed: {result.output}"
+    return int(result.output.strip())
+
+
+def test_oracle_flag_l_empty() -> None:
+    """Empty file: pywcsk -l and wc -l both report 0."""
+    path = FIXTURES / "empty.txt"
+    assert _pywcsk_flag_l_count(path) == _wc_line_count(path)
+
+
+def test_oracle_flag_l_hello() -> None:
+    """Single-line file: pywcsk -l matches wc -l."""
+    path = FIXTURES / "hello.txt"
+    assert _pywcsk_flag_l_count(path) == _wc_line_count(path)
+
+
+def test_oracle_flag_l_multi() -> None:
+    """Multi-line file: pywcsk -l matches wc -l."""
+    path = FIXTURES / "multi.txt"
+    assert _pywcsk_flag_l_count(path) == _wc_line_count(path)
+
+
+def test_oracle_flag_l_no_newline() -> None:
+    """File without trailing newline: both report 0."""
+    path = FIXTURES / "no_newline.txt"
+    assert _pywcsk_flag_l_count(path) == _wc_line_count(path)
+
+
+def test_oracle_flag_l_stdin() -> None:
+    """Multiple lines on stdin: pywcsk -l matches wc -l."""
+    data = b"one\ntwo\nthree\n"
+    assert _pywcsk_flag_l_stdin_count(data) == _wc_stdin_count(data)
