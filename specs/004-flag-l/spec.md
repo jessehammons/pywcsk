@@ -1,7 +1,7 @@
 # Spec: `-l` Flag for Line Counting
 
 **Branch**: 004-flag-l
-**Status**: Active
+**Status**: Merged
 **Reference**: BSD `wc(1)` — `-l` flag behaviour
 
 ## Goal
@@ -53,11 +53,11 @@ behaviour is undefined and not tested.
 
 | AC | Unit test | Integration test | Oracle test |
 |----|-----------|-----------------|-------------|
-| AC1 | `test_count_lines_hello` (existing) | `test_flag_l_hello_file` | `test_oracle_flag_l_hello` |
-| AC2 | `test_count_lines_empty` (existing) | `test_flag_l_empty_file` | `test_oracle_flag_l_empty` |
-| AC3 | `test_count_lines_multi` (existing) | `test_flag_l_multi_file` | `test_oracle_flag_l_multi` |
-| AC4 | `test_count_lines_no_newline` (existing) | `test_flag_l_no_newline_file` | `test_oracle_flag_l_no_newline` |
-| AC5 | — | `test_flag_l_stdin` | `test_oracle_flag_l_stdin` |
-| AC6 | — | `test_flag_l_stdin_empty` | — |
-| AC7 | — | `test_flag_w_unaffected` | — |
-| AC8 | — | `test_no_flag_default_unchanged` | — |
+| AC1 | `test_count_lines_hello` (existing) | `TestFlagLFiles::test_hello_file` | `test_oracle_flag_l_hello` |
+| AC2 | `test_count_lines_empty` (existing) | `TestFlagLFiles::test_empty_file` | `test_oracle_flag_l_empty` |
+| AC3 | `test_count_lines_multi` (existing) | `TestFlagLFiles::test_multi_file` | `test_oracle_flag_l_multi` |
+| AC4 | `test_count_lines_no_newline` (existing) | `TestFlagLFiles::test_no_newline_file` | `test_oracle_flag_l_no_newline` |
+| AC5 | — | `TestFlagLStdin::test_stdin_one_line` | `test_oracle_flag_l_stdin` |
+| AC6 | — | `TestFlagLStdin::test_stdin_empty` | — |
+| AC7 | — | `TestFlagLRegressions::test_flag_w_unaffected` | — |
+| AC8 | — | `TestFlagLRegressions::test_no_flag_default_unchanged` | — |
