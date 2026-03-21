@@ -51,6 +51,11 @@ show_error_codes = true
 show_error_context = true
 warn_unreachable = true
 
+[tool.pytest.ini_options]
+markers = [
+    "oracle: compare line counts against system wc",
+]
+
 [tool.bandit]
 # B101: assert_used (not an issue in tests)
 # B404, B603, B607: subprocess-related skips — inherited from pepalyzer template,
