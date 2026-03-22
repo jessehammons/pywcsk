@@ -1,7 +1,7 @@
 # Spec: Mixed Whitespace Word Splitting
 
 **Branch**: 005-whitespace-word-splitting
-**Status**: Active
+**Status**: Merged
 **Reference**: BSD `wc(1)` — word splitting via `iswspace(3)`
 
 ## Goal
