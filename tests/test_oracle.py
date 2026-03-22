@@ -217,3 +217,38 @@ def test_oracle_flag_l_stdin() -> None:
     """Multiple lines on stdin: pywcsk -l matches wc -l."""
     data = b"one\ntwo\nthree\n"
     assert _pywcsk_flag_l_stdin_count(data) == _wc_stdin_count(data)
+
+
+# ---------------------------------------------------------------------------
+# Mixed whitespace oracle tests (feature 005-whitespace-word-splitting)
+# ---------------------------------------------------------------------------
+
+
+def test_oracle_mixed_tabs_spaces_newlines() -> None:
+    """AC1: tabs, spaces, and newlines mixed — matches wc -w."""
+    data = b"one\t two  \nthree\t\tfour\n"
+    assert _pywcsk_word_stdin_count(data) == _wc_word_stdin_count(data)
+
+
+def test_oracle_mixed_whitespace_only() -> None:
+    """AC2: mixed whitespace only — both report 0."""
+    data = b"  \t  \n  \t  \n"
+    assert _pywcsk_word_stdin_count(data) == _wc_word_stdin_count(data)
+
+
+def test_oracle_tab_space_around_newline() -> None:
+    """AC3: tab+space before and after newlines — matches wc -w."""
+    data = b"one \t\n two\t \nthree\n"
+    assert _pywcsk_word_stdin_count(data) == _wc_word_stdin_count(data)
+
+
+def test_oracle_leading_tabs_and_newlines() -> None:
+    """AC4: leading tabs and newlines before first word — matches wc -w."""
+    data = b"\t\none\t\ntwo \n"
+    assert _pywcsk_word_stdin_count(data) == _wc_word_stdin_count(data)
+
+
+def test_oracle_blank_line_between_words() -> None:
+    """AC5: blank line between words — matches wc -w."""
+    data = b"a  b\t\tc\n\nd\n"
+    assert _pywcsk_word_stdin_count(data) == _wc_word_stdin_count(data)

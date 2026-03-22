@@ -118,3 +118,31 @@ class TestCountWords:
     def test_parametrized(self, data: bytes, expected: int) -> None:
         """Word count equals number of whitespace-delimited tokens."""
         assert count_words(data) == expected
+
+
+class TestMixedWhitespace:
+    """Explicit mixed whitespace tests — spec 005 AC1–AC6."""
+
+    def test_tabs_spaces_newlines(self) -> None:
+        """AC1: tabs, spaces, and newlines mixed as delimiters."""
+        assert count_words(b"one\t two  \nthree\t\tfour\n") == 4
+
+    def test_mixed_whitespace_only(self) -> None:
+        """AC2: input containing only mixed whitespace has 0 words."""
+        assert count_words(b"  \t  \n  \t  \n") == 0
+
+    def test_tab_space_around_newline(self) -> None:
+        """AC3: tab+space before and after newlines."""
+        assert count_words(b"one \t\n two\t \nthree\n") == 3
+
+    def test_leading_tabs_and_newlines(self) -> None:
+        """AC4: leading tabs and newlines before first word."""
+        assert count_words(b"\t\none\t\ntwo \n") == 2
+
+    def test_blank_line_between_words(self) -> None:
+        """AC5: blank line (double newline) between words."""
+        assert count_words(b"a  b\t\tc\n\nd\n") == 4
+
+    def test_crlf_line_endings(self) -> None:
+        """AC6: CRLF line endings treated as whitespace."""
+        assert count_words(b"one\r\ntwo\r\n") == 2
