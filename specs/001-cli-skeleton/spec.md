@@ -1,7 +1,7 @@
 # Spec: CLI Skeleton
 
 **Branch**: 001-cli-skeleton
-**Status**: Complete
+**Status**: Merged
 
 ## Goal
 
@@ -10,7 +10,18 @@ optional list of file arguments and exposes `--version` and `--help`.
 
 ## Acceptance Criteria
 
-1. `pywcsk --version` prints the version string and exits 0
-2. `pywcsk --help` prints usage information and exits 0
-3. `pywcsk` with no arguments exits 0 (reads stdin; no output yet)
-4. `pywcsk file1 file2` is accepted without error (files not yet processed)
+| ID | Given | When | Then |
+|----|-------|------|------|
+| AC1 | any environment | `pywcsk --version` | prints version string, exits 0 |
+| AC2 | any environment | `pywcsk --help` | prints usage information, exits 0 |
+| AC3 | no arguments | `pywcsk` | reads stdin, exits 0, no output |
+| AC4 | two file arguments | `pywcsk file1 file2` | accepted without error |
+
+## Test Coverage Mapping
+
+| AC | Unit test | Integration test | Oracle test |
+|----|-----------|-----------------|-------------|
+| AC1 | — | `test_version_flag` | — |
+| AC2 | — | `test_help_flag` | — |
+| AC3 | — | `test_no_args_exits_zero` | — |
+| AC4 | — | `test_no_args_exits_zero` | — |

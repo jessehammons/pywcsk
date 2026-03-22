@@ -1,7 +1,7 @@
 # Spec: Count Words
 
 **Branch**: 003-count-words
-**Status**: Active
+**Status**: Merged
 **Reference**: BSD `wc(1)` — `-w` flag and word-counting behaviour
 
 ## Goal
@@ -57,12 +57,12 @@ characters. This is the canonical implementation. Specifically:
 
 | AC | Unit test | Integration test | Oracle test |
 |----|-----------|-----------------|-------------|
-| AC1 | `test_count_words_hello` | `test_cli_hello_file` | `test_oracle_hello` |
-| AC2 | `test_count_words_empty` | `test_cli_empty_file` | `test_oracle_empty` |
-| AC3 | `test_count_words_multi` | `test_cli_multi_file` | `test_oracle_multi` |
-| AC4 | `test_count_words_multiple_spaces` | `test_cli_stdin_multiple_spaces` | — |
-| AC5 | `test_count_words_tab` | `test_cli_stdin_tab` | — |
-| AC6 | `test_count_words_whitespace_only` | `test_cli_stdin_whitespace_only` | — |
-| AC7 | `test_count_words_no_newline` | `test_cli_stdin_no_newline` | — |
-| AC8 | `test_count_words_across_lines` | `test_cli_stdin_multi_line` | `test_oracle_stdin_multi` |
-| AC9 | `test_count_words_empty` | `test_cli_stdin_empty` | — |
+| AC1 | `TestCountWords::test_single_word` | `TestCountWordsFiles::test_hello_file` | `test_oracle_words_hello` |
+| AC2 | `TestCountWords::test_empty` | `TestCountWordsFiles::test_empty_file` | `test_oracle_words_empty` |
+| AC3 | `TestCountWords::test_multi_line` | `TestCountWordsFiles::test_multi_file` | `test_oracle_words_multi` |
+| AC4 | `TestCountWords::test_multiple_spaces` | `TestCountWordsStdin::test_stdin_multiple_spaces` | — |
+| AC5 | `TestCountWords::test_tab_separator` | `TestCountWordsStdin::test_stdin_tab_separator` | — |
+| AC6 | `TestCountWords::test_whitespace_only` | `TestCountWordsStdin::test_stdin_whitespace_only` | — |
+| AC7 | `TestCountWords::test_no_trailing_newline` | `TestCountWordsStdin::test_stdin_no_trailing_newline` | — |
+| AC8 | `TestCountWords::test_multi_line` | `TestCountWordsStdin::test_stdin_multi_line` | `test_oracle_words_stdin_multi` |
+| AC9 | `TestCountWords::test_empty` | `TestCountWordsStdin::test_stdin_empty` | — |

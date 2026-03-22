@@ -1,7 +1,7 @@
 # Spec: Count Lines
 
 **Branch**: 002-count-lines
-**Status**: Active
+**Status**: Merged
 **Reference**: BSD `wc(1)` — `-l` flag and default line-counting behaviour
 
 ## Goal
@@ -36,9 +36,9 @@ characters in the input).
 
 | AC | Unit test | Integration test | Oracle test |
 |----|-----------|-----------------|-------------|
-| AC1 | `test_count_lines_hello` | `test_cli_hello_file` | `test_oracle_hello` |
-| AC2 | `test_count_lines_empty` | `test_cli_empty_file` | `test_oracle_empty` |
-| AC3 | `test_count_lines_multi` | `test_cli_multi_file` | `test_oracle_multi` |
-| AC4 | `test_count_lines_no_newline` | `test_cli_no_newline_file` | `test_oracle_no_newline` |
-| AC5 | — | `test_cli_stdin` | `test_oracle_stdin` |
-| AC6 | — | `test_cli_empty_stdin` | — |
+| AC1 | `TestCountLines::test_hello` | `TestCountLinesFiles::test_hello_file` | `test_oracle_hello` |
+| AC2 | `TestCountLines::test_empty` | `TestCountLinesFiles::test_empty_file` | `test_oracle_empty` |
+| AC3 | `TestCountLines::test_multi` | `TestCountLinesFiles::test_multi_file` | `test_oracle_multi` |
+| AC4 | `TestCountLines::test_no_trailing_newline` | `TestCountLinesFiles::test_no_newline_file` | `test_oracle_no_newline` |
+| AC5 | — | `TestCountLinesStdin::test_stdin_one_line` | `test_oracle_stdin_one_line` |
+| AC6 | — | `TestCountLinesStdin::test_stdin_empty` | — |
