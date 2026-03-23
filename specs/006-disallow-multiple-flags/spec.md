@@ -1,7 +1,7 @@
 # Spec: Disallow Multiple Counting Flags
 
 **Branch**: 006-disallow-multiple-flags
-**Status**: Active
+**Status**: Merged
 **Reference**: Intentional temporary constraint — not from BSD `wc(1)`
 
 ## Goal
