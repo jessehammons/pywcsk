@@ -53,10 +53,10 @@ behaviour is undefined and not tested.
 
 | AC | Unit test | Integration test | Oracle test |
 |----|-----------|-----------------|-------------|
-| AC1 | `test_count_lines_hello` (existing) | `TestFlagLFiles::test_hello_file` | `test_oracle_flag_l_hello` |
-| AC2 | `test_count_lines_empty` (existing) | `TestFlagLFiles::test_empty_file` | `test_oracle_flag_l_empty` |
-| AC3 | `test_count_lines_multi` (existing) | `TestFlagLFiles::test_multi_file` | `test_oracle_flag_l_multi` |
-| AC4 | `test_count_lines_no_newline` (existing) | `TestFlagLFiles::test_no_newline_file` | `test_oracle_flag_l_no_newline` |
+| AC1 | `TestCountLines::test_hello` (existing) | `TestFlagLFiles::test_hello_file` | `test_oracle_flag_l_hello` |
+| AC2 | `TestCountLines::test_empty` (existing) | `TestFlagLFiles::test_empty_file` | `test_oracle_flag_l_empty` |
+| AC3 | `TestCountLines::test_multi` (existing) | `TestFlagLFiles::test_multi_file` | `test_oracle_flag_l_multi` |
+| AC4 | `TestCountLines::test_no_trailing_newline` (existing) | `TestFlagLFiles::test_no_newline_file` | `test_oracle_flag_l_no_newline` |
 | AC5 | — | `TestFlagLStdin::test_stdin_one_line` | `test_oracle_flag_l_stdin` |
 | AC6 | — | `TestFlagLStdin::test_stdin_empty` | — |
 | AC7 | — | `TestFlagLRegressions::test_flag_w_unaffected` | — |
