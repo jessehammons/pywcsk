@@ -2,7 +2,7 @@
 
 import pytest
 
-from pywcsk.counter import analyze, count_lines, count_words, Counts
+from pywcsk.counter import analyze, count_bytes, count_lines, count_words, Counts
 
 
 class TestCountLines:
@@ -59,7 +59,6 @@ class TestAnalyze:
     def test_unimplemented_fields_zero(self) -> None:
         """Fields not yet implemented default to 0."""
         counts = analyze(b"hello\n")
-        assert counts.bytes_count == 0
         assert counts.chars == 0
         assert counts.max_line_length == 0
 
@@ -146,3 +145,31 @@ class TestMixedWhitespace:
     def test_crlf_line_endings(self) -> None:
         """AC6: CRLF line endings treated as whitespace."""
         assert count_words(b"one\r\ntwo\r\n") == 2
+
+
+class TestCountBytes:
+    """Tests for count_bytes() and analyze().bytes_count — spec 007 AC1–AC4."""
+
+    def test_empty(self) -> None:
+        """AC2: empty input has 0 bytes."""
+        assert count_bytes(b"") == 0
+
+    def test_hello(self) -> None:
+        """AC1: single line — 5 chars + newline = 6 bytes."""
+        assert count_bytes(b"hello\n") == 6
+
+    def test_multi(self) -> None:
+        """AC3: multi-line file byte count."""
+        assert count_bytes(b"one two\nthree four\nfive\n") == 24
+
+    def test_no_trailing_newline(self) -> None:
+        """AC4: no trailing newline — all bytes still counted."""
+        assert count_bytes(b"hello") == 5
+
+    def test_analyze_populates_bytes_count(self) -> None:
+        """analyze() sets bytes_count correctly."""
+        assert analyze(b"hello\n").bytes_count == 6
+
+    def test_analyze_bytes_count_empty(self) -> None:
+        """analyze() sets bytes_count to 0 for empty input."""
+        assert analyze(b"").bytes_count == 0

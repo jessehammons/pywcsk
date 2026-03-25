@@ -252,3 +252,74 @@ def test_oracle_blank_line_between_words() -> None:
     """AC5: blank line between words — matches wc -w."""
     data = b"a  b\t\tc\n\nd\n"
     assert _pywcsk_word_stdin_count(data) == _wc_word_stdin_count(data)
+
+
+# ---------------------------------------------------------------------------
+# Byte-count oracle tests (feature 007-byte-counting)
+# ---------------------------------------------------------------------------
+
+
+def _wc_byte_count(path: Path) -> int:
+    """Return byte count from system wc -c (integer, platform-safe)."""
+    result = subprocess.run(
+        ["wc", "-c", str(path)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return int(result.stdout.strip().split()[0])
+
+
+def _pywcsk_byte_count(path: Path) -> int:
+    """Return byte count from pywcsk -c (integer)."""
+    result = CliRunner().invoke(main, ["-c", str(path)])
+    assert result.exit_code == 0, f"pywcsk failed: {result.output}"
+    return int(result.output.strip().split()[0])
+
+
+def _wc_byte_stdin_count(data: bytes) -> int:
+    """Return byte count from system wc -c on stdin."""
+    result = subprocess.run(
+        ["wc", "-c"],
+        input=data,
+        capture_output=True,
+        check=True,
+    )
+    return int(result.stdout.strip().split()[0])
+
+
+def _pywcsk_byte_stdin_count(data: bytes) -> int:
+    """Return byte count from pywcsk -c on stdin."""
+    result = CliRunner().invoke(main, ["-c"], input=data)
+    assert result.exit_code == 0, f"pywcsk failed: {result.output}"
+    return int(result.output.strip())
+
+
+def test_oracle_bytes_empty() -> None:
+    """AC2: empty file — both report 0."""
+    path = FIXTURES / "empty.txt"
+    assert _pywcsk_byte_count(path) == _wc_byte_count(path)
+
+
+def test_oracle_bytes_hello() -> None:
+    """AC1: hello.txt — byte counts match wc -c."""
+    path = FIXTURES / "hello.txt"
+    assert _pywcsk_byte_count(path) == _wc_byte_count(path)
+
+
+def test_oracle_bytes_multi() -> None:
+    """AC3: multi.txt — byte counts match wc -c."""
+    path = FIXTURES / "multi.txt"
+    assert _pywcsk_byte_count(path) == _wc_byte_count(path)
+
+
+def test_oracle_bytes_no_newline() -> None:
+    """AC4: no_newline.txt — byte counts match wc -c."""
+    path = FIXTURES / "no_newline.txt"
+    assert _pywcsk_byte_count(path) == _wc_byte_count(path)
+
+
+def test_oracle_bytes_stdin() -> None:
+    """AC5: stdin byte count matches wc -c."""
+    data = b"hello world\n"
+    assert _pywcsk_byte_stdin_count(data) == _wc_byte_stdin_count(data)
