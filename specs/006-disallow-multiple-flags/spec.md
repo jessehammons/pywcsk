@@ -70,15 +70,12 @@ Tests that assert on stderr content must check `result.stderr`, not
 | AC6 | — | `TestFlagValidation::test_l_and_w_stdin_exits_nonzero` | — |
 | AC7 | — | `TestFlagValidation::test_error_message_content` | — |
 
-### Skipped Future Tests
+### Previously Skipped Tests (now active)
 
-Two tests exist in `tests/test_flag_validation.py` marked `@pytest.mark.skip`
-pending `-c` flag implementation (feature 007):
+Two tests were originally marked `@pytest.mark.skip` pending `-c` flag
+implementation. Both were unskipped in feature 007:
 
-| Test | Reason skipped |
-|------|---------------|
-| `TestFlagValidation::test_l_and_c_exits_nonzero` | `-c` not yet a registered Click option |
-| `TestFlagValidation::test_w_and_c_exits_nonzero` | `-c` not yet a registered Click option |
-
-When feature 007 adds `-c`, remove the skip markers and add `-c` to the
-`sum([show_lines, show_words, show_bytes])` guard in `cli.py`.
+| Test | Status |
+|------|--------|
+| `TestFlagValidation::test_l_and_c_exits_nonzero` | Active (unskipped in 007) |
+| `TestFlagValidation::test_w_and_c_exits_nonzero` | Active (unskipped in 007) |

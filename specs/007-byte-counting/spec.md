@@ -1,7 +1,7 @@
 # Spec: Byte Counting (`-c`)
 
 **Branch**: 007-byte-counting
-**Status**: Active
+**Status**: Merged
 **Reference**: BSD `wc(1)` — `-c` flag behaviour
 
 ## Goal
