@@ -7,7 +7,8 @@ from dataclasses import dataclass
 class Counts:
     """Holds all count values for a single input.
 
-    Fields beyond `lines` are populated by future features.
+    Populated fields: lines, words, bytes_count.
+    Future fields: chars (-m), max_line_length (-L).
     """
 
     lines: int = 0
@@ -27,9 +28,15 @@ def count_words(data: bytes) -> int:
     return len(data.split())
 
 
+def count_bytes(data: bytes) -> int:
+    """Return the number of bytes in data."""
+    return len(data)
+
+
 def analyze(data: bytes) -> Counts:
     """Return a Counts populated from raw file bytes."""
     return Counts(
         lines=count_lines(data),
         words=count_words(data),
+        bytes_count=count_bytes(data),
     )

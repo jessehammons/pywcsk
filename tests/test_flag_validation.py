@@ -1,7 +1,6 @@
 """CLI integration tests for multiple flag validation — spec 006 AC1–AC7."""
 
 from click.testing import CliRunner
-import pytest
 
 from pywcsk.cli import main
 
@@ -66,14 +65,12 @@ class TestFlagValidation:
     # Skipped until -c flag is implemented (feature 007)
     # ------------------------------------------------------------------
 
-    @pytest.mark.skip(reason="-c flag not yet implemented (feature 007)")
     def test_l_and_c_exits_nonzero(self) -> None:
-        """Future: -l -c should exit with code 2."""
+        """-l -c exits with code 2."""
         result = CliRunner().invoke(main, ["-l", "-c"], input=HELLO)
         assert result.exit_code == 2
 
-    @pytest.mark.skip(reason="-c flag not yet implemented (feature 007)")
     def test_w_and_c_exits_nonzero(self) -> None:
-        """Future: -w -c should exit with code 2."""
+        """-w -c exits with code 2."""
         result = CliRunner().invoke(main, ["-w", "-c"], input=HELLO)
         assert result.exit_code == 2
