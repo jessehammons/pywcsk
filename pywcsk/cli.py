@@ -3,7 +3,23 @@
 import click
 
 from . import __version__
-from .counter import analyze
+from .counter import analyze, Counts
+
+
+def _format_counts(
+    counts: Counts, show_lines: bool, show_words: bool, show_bytes: bool
+) -> str:
+    """Return space-joined column string for the selected counts in fixed order."""
+    parts = []
+    if show_lines:
+        parts.append(f"{counts.lines:>7}")
+    if show_words:
+        parts.append(f"{counts.words:>7}")
+    if show_bytes:
+        parts.append(f"{counts.bytes_count:>7}")
+    if not parts:
+        parts.append(f"{counts.lines:>7}")
+    return " ".join(parts)
 
 
 @click.command()
@@ -16,32 +32,19 @@ def main(
     files: tuple[str, ...], show_lines: bool, show_words: bool, show_bytes: bool
 ) -> None:
     """Count lines, words, and bytes — a Python implementation of wc."""
-    if sum([show_lines, show_words, show_bytes]) > 1:
-        raise click.UsageError(
-            "only one counting flag (-l, -w, -c) may be used at a time"
-        )
     if not files:
         data = click.get_binary_stream("stdin").read()
         counts = analyze(data)
-        if show_bytes:
-            value = counts.bytes_count
-        elif show_words:
-            value = counts.words
-        else:
-            value = counts.lines
-        click.echo(f"{value:>7}")
+        click.echo(_format_counts(counts, show_lines, show_words, show_bytes))
     else:
         for filename in files:
             with open(filename, "rb") as f:
                 data = f.read()
             counts = analyze(data)
-            if show_bytes:
-                value = counts.bytes_count
-            elif show_words:
-                value = counts.words
-            else:
-                value = counts.lines
-            click.echo(f"{value:>7} {filename}")
+            click.echo(
+                _format_counts(counts, show_lines, show_words, show_bytes)
+                + f" {filename}"
+            )
 
 
 if __name__ == "__main__":
