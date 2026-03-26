@@ -323,3 +323,50 @@ def test_oracle_bytes_stdin() -> None:
     """AC5: stdin byte count matches wc -c."""
     data = b"hello world\n"
     assert _pywcsk_byte_stdin_count(data) == _wc_byte_stdin_count(data)
+
+
+# ---------------------------------------------------------------------------
+# Combined-flag oracle tests (feature 008)
+# ---------------------------------------------------------------------------
+
+
+def _wc_cols(flags: list[str], path: Path) -> list[int]:
+    """Return integer column values from system wc with given flags."""
+    result = subprocess.run(
+        ["wc"] + flags + [str(path)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return [int(x) for x in result.stdout.strip().split() if not x.endswith(path.name)]
+
+
+def _pywcsk_cols(flags: list[str], path: Path) -> list[int]:
+    """Return integer column values from pywcsk with given flags."""
+    result = CliRunner().invoke(main, flags + [str(path)])
+    assert result.exit_code == 0, f"pywcsk failed: {result.output}"
+    return [int(x) for x in result.output.strip().split() if not x.endswith(path.name)]
+
+
+def test_oracle_combined_l_w() -> None:
+    """AC1: -l -w column values match wc -l -w."""
+    path = FIXTURES / "hello.txt"
+    assert _pywcsk_cols(["-l", "-w"], path) == _wc_cols(["-l", "-w"], path)
+
+
+def test_oracle_combined_l_c() -> None:
+    """AC3: -l -c column values match wc -l -c."""
+    path = FIXTURES / "hello.txt"
+    assert _pywcsk_cols(["-l", "-c"], path) == _wc_cols(["-l", "-c"], path)
+
+
+def test_oracle_combined_w_c() -> None:
+    """AC4: -w -c column values match wc -w -c."""
+    path = FIXTURES / "hello.txt"
+    assert _pywcsk_cols(["-w", "-c"], path) == _wc_cols(["-w", "-c"], path)
+
+
+def test_oracle_combined_l_w_c() -> None:
+    """AC5: -l -w -c column values match wc -l -w -c."""
+    path = FIXTURES / "multi.txt"
+    assert _pywcsk_cols(["-l", "-w", "-c"], path) == _wc_cols(["-l", "-w", "-c"], path)
