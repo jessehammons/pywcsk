@@ -1,7 +1,7 @@
 # Spec: Combined Flags (`-l -w -c`)
 
 **Branch**: 008-combined-flags-lwc
-**Status**: Active
+**Status**: Merged
 **Reference**: BSD `wc(1)` — multi-flag output behaviour
 
 ## Goal
