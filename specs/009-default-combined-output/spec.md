@@ -1,7 +1,7 @@
 # Spec: Default Combined Output
 
 **Branch**: 009-default-combined-output
-**Status**: Active
+**Status**: Merged
 **Reference**: BSD `wc(1)` — default (no-flag) output behaviour
 
 ## Goal
