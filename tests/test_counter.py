@@ -57,7 +57,7 @@ class TestAnalyze:
         assert analyze(b"hello world\n").words == 2
 
     def test_unimplemented_fields_zero(self) -> None:
-        """Fields not yet implemented default to 0."""
+        """Unimplemented fields (chars, max_line_length) default to 0."""
         counts = analyze(b"hello\n")
         assert counts.chars == 0
         assert counts.max_line_length == 0

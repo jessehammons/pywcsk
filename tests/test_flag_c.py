@@ -67,10 +67,10 @@ class TestFlagCRegressions:
     """Regression guards — existing flags unaffected."""
 
     def test_no_flag_still_counts_lines(self) -> None:
-        """No flags: default line count unchanged."""
+        """No flags: default output is lines, words, bytes."""
         result = CliRunner().invoke(main, [], input=b"one\ntwo\nthree\n")
         assert result.exit_code == 0
-        assert result.output == "      3\n"
+        assert result.output == "      3       3      14\n"
 
     def test_flag_l_still_counts_lines(self) -> None:
         """-l alone: line count unchanged."""

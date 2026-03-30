@@ -15,10 +15,10 @@ class TestFlagValidation:
     # ------------------------------------------------------------------
 
     def test_no_flag_unchanged(self) -> None:
-        """AC1: no flags still outputs line count, exits 0."""
+        """AC1: no flags outputs lines, words, and bytes, exits 0."""
         result = CliRunner().invoke(main, [], input=HELLO)
         assert result.exit_code == 0
-        assert result.stdout == "      1\n"
+        assert result.stdout == "      1       2      12\n"
 
     def test_flag_l_unchanged(self) -> None:
         """AC2: -l alone still outputs line count, exits 0."""

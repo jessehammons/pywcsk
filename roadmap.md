@@ -130,6 +130,16 @@ Each feature should be implemented via:
 
 ---
 
+#### 009b: Golden Test Infrastructure (Infra)
+
+* Establish `tests/test_golden.py` and `tests/golden/` directory
+* Store canonical `.expected` output files per fixture/flag combination
+* Fulfils constitution Principle III (third required test layer)
+* Backfill golden fixtures for features 001–009 as baseline
+* All future features must include golden fixtures from this point forward
+
+---
+
 ## 📁 Phase 4 — Multi-file Behavior
 
 #### 010: Multiple Files

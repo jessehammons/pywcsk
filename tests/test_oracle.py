@@ -1,4 +1,4 @@
-"""Oracle tests — compare pywcsk line counts against system wc.
+"""Oracle tests — compare pywcsk output against system wc.
 
 Uses integer comparison so tests pass on both BSD wc (macOS) and GNU wc
 (Linux), which differ in output column width.
@@ -53,7 +53,7 @@ def _pywcsk_stdin_count(data: bytes) -> int:
     """Return line count from pywcsk on stdin."""
     result = CliRunner().invoke(main, [], input=data)
     assert result.exit_code == 0, f"pywcsk failed: {result.output}"
-    return int(result.output.strip())
+    return int(result.output.strip().split()[0])
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -370,3 +370,20 @@ def test_oracle_combined_l_w_c() -> None:
     """AC5: -l -w -c column values match wc -l -w -c."""
     path = FIXTURES / "multi.txt"
     assert _pywcsk_cols(["-l", "-w", "-c"], path) == _wc_cols(["-l", "-w", "-c"], path)
+
+
+# ---------------------------------------------------------------------------
+# Default output oracle tests (feature 009)
+# ---------------------------------------------------------------------------
+
+
+def test_oracle_default_hello() -> None:
+    """AC4a: default output column values match wc for hello.txt."""
+    path = FIXTURES / "hello.txt"
+    assert _pywcsk_cols([], path) == _wc_cols([], path)
+
+
+def test_oracle_default_multi() -> None:
+    """AC4b: default output column values match wc for multi.txt."""
+    path = FIXTURES / "multi.txt"
+    assert _pywcsk_cols([], path) == _wc_cols([], path)

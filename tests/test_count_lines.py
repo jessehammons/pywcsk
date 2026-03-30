@@ -17,27 +17,27 @@ class TestCountLinesFiles:
         path = str(FIXTURES / "hello.txt")
         result = CliRunner().invoke(main, [path])
         assert result.exit_code == 0
-        count, filename = result.output.split()
-        assert int(count) == 1
-        assert filename == path
+        tokens = result.output.split()
+        assert int(tokens[0]) == 1
+        assert tokens[-1] == path
 
     def test_empty_file(self) -> None:
         """AC2: empty file reports 0."""
         path = str(FIXTURES / "empty.txt")
         result = CliRunner().invoke(main, [path])
         assert result.exit_code == 0
-        count, filename = result.output.split()
-        assert int(count) == 0
-        assert filename == path
+        tokens = result.output.split()
+        assert int(tokens[0]) == 0
+        assert tokens[-1] == path
 
     def test_multi_file(self) -> None:
         """AC3: three-line file."""
         path = str(FIXTURES / "multi.txt")
         result = CliRunner().invoke(main, [path])
         assert result.exit_code == 0
-        count, filename = result.output.split()
-        assert int(count) == 3
-        assert filename == path
+        tokens = result.output.split()
+        assert int(tokens[0]) == 3
+        assert tokens[-1] == path
 
     def test_no_newline_file(self) -> None:
         """AC4: file with no trailing newline has 0 lines."""
@@ -53,16 +53,16 @@ class TestCountLinesStdin:
         """AC5: one line on stdin, no filename in output."""
         result = CliRunner().invoke(main, [], input=b"hello world\n")
         assert result.exit_code == 0
-        assert result.output == "      1\n"
+        assert int(result.output.split()[0]) == 1
 
     def test_stdin_empty(self) -> None:
         """AC6: empty stdin outputs 0, no filename."""
         result = CliRunner().invoke(main, [], input=b"")
         assert result.exit_code == 0
-        assert result.output == "      0\n"
+        assert int(result.output.split()[0]) == 0
 
     def test_stdin_multi_line(self) -> None:
         """Multiple lines on stdin are counted correctly."""
         result = CliRunner().invoke(main, [], input=b"a\nb\nc\n")
         assert result.exit_code == 0
-        assert result.output == "      3\n"
+        assert int(result.output.split()[0]) == 3

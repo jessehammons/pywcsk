@@ -18,7 +18,13 @@ def _format_counts(
     if show_bytes:
         parts.append(f"{counts.bytes_count:>7}")
     if not parts:
-        parts.append(f"{counts.lines:>7}")
+        parts.extend(
+            [
+                f"{counts.lines:>7}",
+                f"{counts.words:>7}",
+                f"{counts.bytes_count:>7}",
+            ]
+        )
     return " ".join(parts)
 
 
