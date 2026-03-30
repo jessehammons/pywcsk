@@ -92,10 +92,10 @@ class TestCombinedFlags:
     # ------------------------------------------------------------------
 
     def test_no_flag_unchanged(self) -> None:
-        """AC11: no flags still outputs line count only."""
+        """AC11: no flags outputs lines, words, and bytes."""
         result = CliRunner().invoke(main, [str(HELLO_FILE)])
         assert result.exit_code == 0
-        assert result.stdout == f"      1 {HELLO_FILE}\n"
+        assert result.stdout == f"      1       1       6 {HELLO_FILE}\n"
 
     def test_flag_l_unchanged(self) -> None:
         """AC12: -l alone still outputs line count only."""

@@ -18,6 +18,40 @@ Basic feature workflow
 # do manual testing / smoke tests
 `printf "one\ntwo\t\r\t\nthree\tfour\nfive\n" | ./venv/bin/pywcsk -c -w -l`
 
+#run speckit commands (table below)
+
+# now request claude code to avoid docstring drift
+Perform a repo-wide docstring alignment audit.
+
+Context:
+
+* spec.md is the source of truth
+* tests reflect actual behavior
+* docstrings must match both
+
+Tasks:
+
+1. Scan all test files and source files for docstrings
+2. Identify any docstrings that:
+
+   * describe outdated behavior
+   * contradict current test assertions
+   * reference previous feature assumptions (e.g., "default = lines only")
+3. For each mismatch:
+
+   * show the current docstring
+   * explain why it is incorrect
+   * propose the corrected docstring
+
+Then:
+4. Apply all safe corrections automatically
+5. Do NOT change test logic or assertions
+6. Keep docstrings concise and behaviorally precise
+
+Goal:
+Docstrings must accurately describe current behavior as validated by tests and spec.md.
+
+
 # push branch to GitHub
 `git push -u origin 008-combined-flags-lwc`
 

@@ -6,10 +6,23 @@
 
 ## Goal
 
-When no counting flags are given, output all three counts — lines, words, bytes
-— in the standard column order, matching `wc` default behaviour. This replaces
-the previous no-flag default of line count only (a temporary placeholder
-established in feature 002).
+Align `pywcsk` default behaviour with standard `wc`: when no counting flags are
+given, output lines, words, and bytes together in fixed column order. This
+replaces the previous no-flag default of line count only, which was a temporary
+placeholder established in feature 002.
+
+## Non-Goals
+
+- Dynamic column width (column width remains fixed at 7)
+- Totals row for multiple files (deferred to feature 011)
+- Additional flags (`-m` character count, `-L` max line length)
+
+## Dependencies
+
+- Feature 007 (`-c` byte counting) — must be merged; `Counts.bytes_count` must
+  be populated by `analyze()`. ✅ Complete.
+- Feature 008 (combined flags) — must be merged; `_format_counts()` must exist.
+  ✅ Complete.
 
 ## Breaking Change
 
@@ -20,13 +33,14 @@ This is a deliberate breaking change to the no-flag default:
 | `pywcsk hello.txt` | `      1 hello.txt` | `      1       1       6 hello.txt` |
 | `pywcsk` with `"hello world\n"` on stdin | `      1` | `      1       2      12` |
 
-Single-flag behaviour (`-l`, `-w`, `-c`) is **unchanged**.
+Single-flag behaviour (`-l`, `-w`, `-c`) and combined-flag behaviour (`-l -w -c`)
+are **unchanged**.
 
 ## Implementation
 
 The only source change is in `_format_counts()` in `pywcsk/cli.py`. The
 `if not parts` branch currently appends only `counts.lines`. Change it to
-append all three:
+extend with all three in fixed order:
 
 ```python
 # before
@@ -42,20 +56,32 @@ if not parts:
     ])
 ```
 
+Column order (lines → words → bytes) is structurally enforced by the order of
+the `extend` call — it cannot be affected by any flag or input value.
+
 No other source changes required.
 
-## Test Updates Required
+## Deletions and Modifications
+
+### Existing tests to update (expected value change only)
 
 Two existing tests assert the old single-column no-flag behaviour and must be
-updated to expect three-column output:
+updated to expect three-column output. Both keep their existing name.
 
 | File | Test | Old assertion | New assertion |
 |------|------|--------------|---------------|
-| `tests/test_flag_validation.py` | `test_no_flag_unchanged` | `"      1\n"` | `"      1       1       6\n"` (stdin) |
+| `tests/test_flag_validation.py` | `test_no_flag_unchanged` | `"      1\n"` | `"      1       2      12\n"` (stdin uses `HELLO = b"hello world\n"`: 1 line, 2 words, 12 bytes) |
 | `tests/test_combined_flags.py` | `test_no_flag_unchanged` | `f"      1 {HELLO_FILE}\n"` | `f"      1       1       6 {HELLO_FILE}\n"` |
 
-Both tests keep their existing name — the behaviour they guard (no-flag path
-working correctly) is unchanged; only the expected output value updates.
+### Comments and documentation to update
+
+Two stale docstrings describe the default output as "line count only" and must
+be updated:
+
+| File | Test | Stale docstring | Updated docstring |
+|------|------|----------------|-------------------|
+| `tests/test_flag_validation.py` | `test_no_flag_unchanged` | `"AC1: no flags still outputs line count, exits 0."` | `"AC1: no flags outputs lines, words, and bytes, exits 0."` |
+| `tests/test_combined_flags.py` | `test_no_flag_unchanged` | `"AC11: no flags still outputs line count only."` | `"AC11: no flags outputs lines, words, and bytes."` |
 
 ## Acceptance Criteria
 
@@ -69,56 +95,76 @@ Fixtures:
 
 | ID | Given | When | Then |
 |----|-------|------|------|
-| AC1 | `hello.txt` | `pywcsk hello.txt` (no flags) | stdout is `      1       1       6 hello.txt\n`, exit 0 |
-| AC2 | `multi.txt` | `pywcsk multi.txt` (no flags) | stdout is `      3       5      24 multi.txt\n`, exit 0 |
-| AC3 | `empty.txt` | `pywcsk empty.txt` (no flags) | stdout is `      0       0       0 empty.txt\n`, exit 0 |
-| AC4 | `no_newline.txt` | `pywcsk no_newline.txt` (no flags) | stdout is `      0       1       5 no_newline.txt\n`, exit 0 |
-| AC5 | `"hello world\n"` on stdin | `pywcsk` (no flags) | stdout is `      1       2      12\n`, no filename |
-| AC6 | `-l` only | `pywcsk -l hello.txt` | stdout is `      1 hello.txt\n` — single-flag unchanged |
-| AC7 | `-w` only | `pywcsk -w hello.txt` | stdout is `      1 hello.txt\n` — single-flag unchanged |
-| AC8 | `-c` only | `pywcsk -c hello.txt` | stdout is `      6 hello.txt\n` — single-flag unchanged |
+| AC1a | `hello.txt` | `pywcsk hello.txt` (no flags) | stdout is `      1       1       6 hello.txt\n`, exit 0 |
+| AC1b | `multi.txt` | `pywcsk multi.txt` (no flags) | stdout is `      3       5      24 multi.txt\n`, exit 0 |
+| AC1c | `no_newline.txt` | `pywcsk no_newline.txt` (no flags) | stdout is `      0       1       5 no_newline.txt\n`, exit 0 |
+| AC2 | `"hello world\n"` on stdin | `pywcsk` (no flags) | stdout is `      1       2      12\n`, no filename, exit 0 |
+| AC3 | any input | column format | each column is right-aligned in a 7-character field; columns are separated by a single space; verified by exact string assertions in AC1–AC2 |
+| AC4a | `hello.txt` | `pywcsk hello.txt` vs `wc hello.txt` | integer column values match system `wc` |
+| AC4b | `multi.txt` | `pywcsk multi.txt` vs `wc multi.txt` | integer column values match system `wc` |
+| AC5a | `-l` only | `pywcsk -l hello.txt` | stdout is `      1 hello.txt\n` — single-flag unchanged |
+| AC5b | `-w` only | `pywcsk -w hello.txt` | stdout is `      1 hello.txt\n` — single-flag unchanged |
+| AC5c | `-c` only | `pywcsk -c hello.txt` | stdout is `      6 hello.txt\n` — single-flag unchanged |
+| AC6 | `-l -w -c` | `pywcsk -l -w -c hello.txt` | stdout is `      1       1       6 hello.txt\n` — combined-flag output unchanged; satisfied by existing `TestCombinedFlags::test_l_w_c_file` from feature 008, no new test required |
+| AC7 | `empty.txt` | `pywcsk empty.txt` (no flags) | stdout is `      0       0       0 empty.txt\n`, exit 0 |
+| AC8 | no flags | `pywcsk hello.txt` | column values individually match `count_lines()`, `count_words()`, `count_bytes()` — verified by AC1a and the existing unit test suite |
 
-AC3 and AC4 exercise edge cases (empty file and no-trailing-newline) that
-distinguish correct three-column default output from a lucky single-column
-match.
+**Notes on specific ACs:**
 
-AC6–AC8 are regression guards confirming the `if not parts` branch is only
-reached when no flags are set. All three use `hello.txt` — this is intentional
-since their purpose is to confirm flag routing, not fixture coverage. The
-fixture values themselves are covered by AC1–AC4.
-
-AC5 (stdin, no flags) has no oracle test. This is intentional — stdin oracle
-tests require piping input through `subprocess`, which adds complexity for
-minimal gain when the integration test already pins the exact output.
+- AC1c and AC7 distinguish correct three-column output from an accidental
+  single-column match — a file with 0 lines and 0 bytes would expose a
+  regression that AC1a/AC1b would not.
+- AC3 has no dedicated test — it is verified implicitly by the exact string
+  assertions in AC1 and AC2. A dedicated formatting test would duplicate those
+  assertions without adding coverage.
+- AC4 (oracle) uses integer column comparison, not string equality, making it
+  platform-safe across BSD and GNU `wc` column-width differences.
+- AC5a–AC5c all use `hello.txt`. This is intentional — their purpose is to
+  confirm flag routing (the `if not parts` branch is not reached when a flag is
+  set), not fixture coverage.
+- AC6 is satisfied by the existing `TestCombinedFlags::test_l_w_c_file` from
+  feature 008. No new test is added — the existing test already guards this
+  path. If the `if not parts` branch incorrectly triggers when all three flags
+  are set, that test would catch it.
+- AC7 (empty file) and AC1c (no trailing newline) are not oracle-tested —
+  excluded as a conservative choice. Both BSD and GNU `wc` agree on their
+  output for these fixtures, but the integration tests are sufficient given the
+  values are already verified and pinned.
+- AC2 (stdin, no flags) has no oracle test — stdin oracle tests require piping
+  through `subprocess`, adding complexity for minimal gain when the integration
+  test already pins the exact output.
 
 ## Test Coverage Mapping
 
 | AC | Integration test | Oracle test |
 |----|-----------------|-------------|
-| AC1 | `TestDefaultOutput::test_hello_file` | `test_oracle_default_hello` |
-| AC2 | `TestDefaultOutput::test_multi_file` | `test_oracle_default_multi` |
-| AC3 | `TestDefaultOutput::test_empty_file` | — |
-| AC4 | `TestDefaultOutput::test_no_newline_file` | — |
-| AC5 | `TestDefaultOutput::test_stdin` | — |
-| AC6 | `TestDefaultOutput::test_flag_l_unchanged` | — |
-| AC7 | `TestDefaultOutput::test_flag_w_unchanged` | — |
-| AC8 | `TestDefaultOutput::test_flag_c_unchanged` | — |
+| AC1a | `TestDefaultOutput::test_hello_file` | `test_oracle_default_hello` |
+| AC1b | `TestDefaultOutput::test_multi_file` | `test_oracle_default_multi` |
+| AC1c | `TestDefaultOutput::test_no_newline_file` | — |
+| AC2 | `TestDefaultOutput::test_stdin` | — |
+| AC3 | _(verified by AC1/AC2 exact strings)_ | — |
+| AC4a | — | `test_oracle_default_hello` |
+| AC4b | — | `test_oracle_default_multi` |
+| AC5a | `TestDefaultOutput::test_flag_l_unchanged` | — |
+| AC5b | `TestDefaultOutput::test_flag_w_unchanged` | — |
+| AC5c | `TestDefaultOutput::test_flag_c_unchanged` | — |
+| AC6 | _(satisfied by `TestCombinedFlags::test_l_w_c_file` — feature 008)_ | — |
+| AC7 | `TestDefaultOutput::test_empty_file` | — |
+| AC8 | _(verified by AC1a + existing unit suite)_ | — |
 
-### Updated Tests (not new — existing tests with corrected expected values)
+### Unit test layer (`_format_counts`)
 
-| File | Test | Change |
-|------|------|--------|
-| `tests/test_flag_validation.py` | `test_no_flag_unchanged` | Update expected stdout |
-| `tests/test_combined_flags.py` | `test_no_flag_unchanged` | Update expected stdout |
+`tests/test_formatter.py` — `TestFormatCounts` — satisfies constitution Principle III (unit test
+layer) for the `_format_counts()` formatter function. Six tests cover all flag combinations
+(show_lines only, show_words only, show_bytes only, all three flags, no flags, column-width
+invariant) and directly verify the no-flag default branch added in this feature.
 
-## Notes
+### Updated tests (existing tests, corrected expected values)
 
-- Oracle tests for AC1 and AC2 compare integer column values against system
-  `wc` (no flags), using the same `_wc_cols` / `_pywcsk_cols` helper pattern
-  established in feature 008.
-- AC3 (empty file) and AC4 (no newline) are not oracle-tested — excluded as a
-  conservative choice. These fixtures are simple ASCII and both BSD and GNU `wc`
-  agree on their output, but the integration tests alone are sufficient given
-  that the fixture values are already verified and pinned.
-- The `if not parts` branch in `_format_counts()` is the only code path
-  changed. All flag-combination paths from feature 008 are unaffected.
+Both tests require two changes each — assertion value and docstring. See the
+"Deletions and Modifications" tables above for the exact strings.
+
+| File | Test | Assertion change | Docstring change |
+|------|------|-----------------|-----------------|
+| `tests/test_flag_validation.py` | `test_no_flag_unchanged` | `"      1\n"` → `"      1       2      12\n"` | "line count" → "lines, words, and bytes" |
+| `tests/test_combined_flags.py` | `test_no_flag_unchanged` | `f"      1 {HELLO_FILE}\n"` → `f"      1       1       6 {HELLO_FILE}\n"` | "line count only" → "lines, words, and bytes" |

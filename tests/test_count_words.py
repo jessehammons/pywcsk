@@ -47,12 +47,12 @@ class TestCountWordsFiles:
         assert result.output.startswith("      1 ")
 
     def test_flag_not_set_uses_lines(self) -> None:
-        """Without -w, output is line count (feature 002 unchanged)."""
+        """Without -w, default output (lines, words, bytes) has line count as first column."""
         path = str(FIXTURES / "multi.txt")
         result = CliRunner().invoke(main, [path])
         assert result.exit_code == 0
-        count, _ = result.output.split()
-        assert int(count) == 3
+        tokens = result.output.split()
+        assert int(tokens[0]) == 3
 
 
 class TestCountWordsStdin:

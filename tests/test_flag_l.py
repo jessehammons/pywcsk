@@ -73,9 +73,9 @@ class TestFlagLRegressions:
         assert result.output == "      2\n"
 
     def test_no_flag_default_unchanged(self) -> None:
-        """AC8: no flags still outputs line count (feature 002 contract)."""
+        """AC8: no flags outputs lines, words, bytes; line count is first column."""
         path = str(FIXTURES / "multi.txt")
         result = CliRunner().invoke(main, [path])
         assert result.exit_code == 0
-        count, _ = result.output.split()
-        assert int(count) == 3
+        tokens = result.output.split()
+        assert int(tokens[0]) == 3
